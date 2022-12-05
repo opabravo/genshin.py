@@ -42,11 +42,7 @@ def get_datafile(game_location: typing.Optional[PathLike] = None) -> typing.Opti
             return None  # no genshin installation location in logfile
 
         data_location = pathlib.Path(f"{match[1]}/webCaches/Cache/Cache_Data/data_2")
-        if data_location.is_file():
-            return data_location
-
-        return None  # data location is improper
-
+        return data_location if data_location.is_file() else None
     return None  # no genshin datafile
 
 
@@ -68,8 +64,9 @@ def _read_datafile(game_location: typing.Optional[PathLike] = None) -> str:
 
 def extract_authkey(string: str) -> typing.Optional[str]:
     """Extract an authkey from the provided string."""
-    match = re.findall(r"https://.+?authkey=([^&#]+)", string, re.MULTILINE)
-    if match:
+    if match := re.findall(
+        r"https://.+?authkey=([^&#]+)", string, re.MULTILINE
+    ):
         return urllib.parse.unquote(match[-1])
 
     return None

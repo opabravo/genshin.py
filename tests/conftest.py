@@ -25,9 +25,7 @@ def cookies() -> typing.Mapping[str, str]:
     if not os.environ.get("GENSHIN_COOKIES"):
         pytest.exit("No cookies set", 1)
 
-    cookies = genshin.client.manager.parse_cookie(os.environ["GENSHIN_COOKIES"])
-
-    return cookies
+    return genshin.client.manager.parse_cookie(os.environ["GENSHIN_COOKIES"])
 
 
 @pytest.fixture(scope="session")
@@ -48,22 +46,22 @@ def local_cookies() -> typing.Mapping[str, str]:
 
 @pytest.fixture(scope="session")
 def chinese_cookies() -> typing.Mapping[str, str]:
-    if not os.environ.get("CHINESE_GENSHIN_COOKIES"):
-        return {}
-
-    cookies = genshin.client.manager.parse_cookie(os.environ["GENSHIN_COOKIES"])
-
-    return cookies
+    return (
+        genshin.client.manager.parse_cookie(os.environ["GENSHIN_COOKIES"])
+        if os.environ.get("CHINESE_GENSHIN_COOKIES")
+        else {}
+    )
 
 
 @pytest.fixture(scope="session")
 def local_chinese_cookies() -> typing.Mapping[str, str]:
-    if not os.environ.get("LOCAL_CHINESE_GENSHIN_COOKIES"):
-        return {}
-
-    cookies = genshin.client.manager.parse_cookie(os.environ["LOCAL_GENSHIN_COOKIES"])
-
-    return cookies
+    return (
+        genshin.client.manager.parse_cookie(
+            os.environ["LOCAL_GENSHIN_COOKIES"]
+        )
+        if os.environ.get("LOCAL_CHINESE_GENSHIN_COOKIES")
+        else {}
+    )
 
 
 @pytest.fixture(scope="session")

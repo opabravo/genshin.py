@@ -31,7 +31,7 @@ def create_short_lang_code(lang: str) -> str:
 
 def recognize_genshin_server(uid: int) -> str:
     """Recognize which server a Genshin UID is from."""
-    server = {
+    if server := {
         "1": "cn_gf01",
         "2": "cn_gf01",
         "5": "cn_qd01",
@@ -39,9 +39,7 @@ def recognize_genshin_server(uid: int) -> str:
         "7": "os_euro",
         "8": "os_asia",
         "9": "os_cht",
-    }.get(str(uid)[0])
-
-    if server:
+    }.get(str(uid)[0]):
         return server
 
     raise ValueError(f"UID {uid} isn't associated with any server")
@@ -80,19 +78,25 @@ def recognize_game(uid: int, region: types.Region) -> typing.Optional[types.Game
 
     first = int(str(uid)[0])
 
-    for game, digits in UID_RANGE.items():
-        if first in digits[region]:
-            return game
-
-    return None
+    return next(
+        (
+            game
+            for game, digits in UID_RANGE.items()
+            if first in digits[region]
+        ),
+        None,
+    )
 
 
 def recognize_region(uid: int, game: types.Game) -> typing.Optional[types.Region]:
     """Recognize the region of a uid."""
     first = int(str(uid)[0])
 
-    for region, digits in UID_RANGE[game].items():
-        if first in digits:
-            return region
-
-    return None
+    return next(
+        (
+            region
+            for region, digits in UID_RANGE[game].items()
+            if first in digits
+        ),
+        None,
+    )

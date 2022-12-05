@@ -21,8 +21,7 @@ def _get_init_fields(cls: typing.Type[APIModel]) -> typing.Tuple[typing.Set[str]
     model_init_fields: typing.Set[str] = set()
 
     for name, field in cls.__fields__.items():
-        alias = field.field_info.extra.get("galias")
-        if alias:
+        if alias := field.field_info.extra.get("galias"):
             api_init_fields.add(alias)
             model_init_fields.add(name)
 
@@ -67,12 +66,12 @@ class APIModel(pydantic.BaseModel, abc.ABC):
                 if isinstance(value, (APIModel, client_base.BaseClient)):
                     lang = value.lang
 
-            if lang is None:
-                # validator, it's a skipper
-                if isinstance(frame.f_locals.get("cls"), type) and issubclass(frame.f_locals["cls"], APIModel):
-                    lang = None
-                else:
-                    raise Exception("lang not found", frame)
+        if lang is None:
+            # validator, it's a skipper
+            if isinstance(frame.f_locals.get("cls"), type) and issubclass(frame.f_locals["cls"], APIModel):
+                lang = None
+            else:
+                raise Exception("lang not found", frame)
 
         object.__setattr__(self, "lang", lang)
         super().__init__(**data, lang=lang)

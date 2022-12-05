@@ -49,6 +49,7 @@ async def test_paginator_next_empty():
 
 
 async def test_buffered_paginator():
+
     class MockBufferedPaginator(paginators.BufferedPaginator[int]):
         async def next_page(self) -> typing.Sequence[int]:
             index = self._counter - 1
@@ -58,7 +59,7 @@ async def test_buffered_paginator():
     assert not paginator.exhausted
 
     values = await paginator.flatten()
-    assert values == list(range(0, 12))
+    assert values == list(range(12))
 
     assert paginator.exhausted
 

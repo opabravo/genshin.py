@@ -91,7 +91,7 @@ class HyakuninIkki(APIModel):
     @property
     def medal(self) -> str:
         match = re.search(r"heraldry_(\w+)\.png", self.medal_icon)
-        return match.group(1) if match else ""
+        return match[1] if match else ""
 
 
 # ---------------------------------------------------------

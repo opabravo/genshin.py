@@ -76,10 +76,11 @@ class BaseClient(abc.ABC):
             default_game=self.default_game and self.default_game.value,
             hoyolab_id=self.hoyolab_id,
             uid=self.default_game and self.uid,
-            authkey=self.authkey and self.authkey[:12] + "...",
+            authkey=self.authkey and f"{self.authkey[:12]}...",
             proxy=self.proxy,
             debug=self.debug,
         )
+
         return f"<{type(self).__name__} {', '.join(f'{k}={v!r}' for k, v in kwargs.items() if v)}>"
 
     @property
@@ -378,7 +379,10 @@ class BaseClient(abc.ABC):
         url = routes.BBS_URL.get_url(region).join(yarl.URL(url))
 
         headers = dict(headers or {})
-        headers.update(ds.get_ds_headers(data=data, params=params, region=region, lang=lang or self.lang))
+        headers |= ds.get_ds_headers(
+            data=data, params=params, region=region, lang=lang or self.lang
+        )
+
         headers["Referer"] = str(routes.BBS_REFERER_URL.get_url(self.region))
 
         data = await self.request(url, method=method, params=params, data=data, headers=headers, **kwargs)
@@ -406,7 +410,10 @@ class BaseClient(abc.ABC):
         url = routes.TAKUMI_URL.get_url(region).join(yarl.URL(url))
 
         headers = dict(headers or {})
-        headers.update(ds.get_ds_headers(data=data, params=params, region=region, lang=lang or self.lang))
+        headers |= ds.get_ds_headers(
+            data=data, params=params, region=region, lang=lang or self.lang
+        )
+
 
         data = await self.request(url, method=method, params=params, data=data, headers=headers, **kwargs)
         return data
@@ -483,9 +490,8 @@ class BaseClient(abc.ABC):
 
     async def _fetch_mi18n(self, key: str, lang: str, *, force: bool = False) -> None:
         """Update mi18n for a single url."""
-        if not force:
-            if key in base_model.APIModel._mi18n:
-                return
+        if not force and key in base_model.APIModel._mi18n:
+            return
 
         base_model.APIModel._mi18n[key] = {}
 
@@ -494,14 +500,13 @@ class BaseClient(abc.ABC):
 
         data = await self.request_webstatic(url.format(lang=lang), cache=cache_key)
         for k, v in data.items():
-            actual_key = str.lower(key + "/" + k)
+            actual_key = str.lower(f"{key}/{k}")
             base_model.APIModel._mi18n.setdefault(actual_key, {})[lang] = v
 
     async def update_mi18n(self, langs: typing.Iterable[str] = constants.LANGS, *, force: bool = False) -> None:
         """Fetch mi18n for partially localized endpoints."""
-        if not force:
-            if base_model.APIModel._mi18n:
-                return
+        if not force and base_model.APIModel._mi18n:
+            return
 
         langs = tuple(langs)
 

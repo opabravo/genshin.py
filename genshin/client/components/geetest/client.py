@@ -40,7 +40,7 @@ class GeetestClient(base.BaseClient):
             mmt_key=mmt_key,
             token_type=token_type,
         )
-        payload.update(geetest)
+        payload |= geetest
 
         # we do not want to use the previous cookie manager sessions
 
