@@ -56,10 +56,11 @@ class BaseBattleChronicleClient(base.BaseClient):
         url = base_url / endpoint
 
         mi18n_task = asyncio.create_task(self._fetch_mi18n("bbs", lang=lang or self.lang))
-        if not model_constants.CHARACTER_NAMES.get(lang or self.lang):
-            update_task = asyncio.create_task(utility.update_characters_enka())
-        else:
-            update_task = asyncio.create_task(asyncio.sleep(0))
+        update_task = (
+            asyncio.create_task(asyncio.sleep(0))
+            if model_constants.CHARACTER_NAMES.get(lang or self.lang)
+            else asyncio.create_task(utility.update_characters_enka())
+        )
 
         data = await self.request_hoyolab(url, lang=lang, region=region, **kwargs)
 

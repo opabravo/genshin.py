@@ -48,11 +48,14 @@ def parse_cookie(cookie: typing.Optional[CookieOrHeader]) -> typing.Dict[str, st
 
 def get_cookie_identifier(cookie: typing.Mapping[str, str]) -> typing.Optional[str]:
     """Get a unique identifier for a cookie."""
-    for name, value in cookie.items():
-        if name in ("ltuid", "account_id", "ltmid_v2", "account_mid_v2"):
-            return value
-
-    return None
+    return next(
+        (
+            value
+            for name, value in cookie.items()
+            if name in ("ltuid", "account_id", "ltmid_v2", "account_mid_v2")
+        ),
+        None,
+    )
 
 
 class BaseCookieManager(abc.ABC):
@@ -106,10 +109,10 @@ class BaseCookieManager(abc.ABC):
             return
 
         proxy = yarl.URL(proxy)
-        if str(proxy.scheme) not in ("https", "http", "ws", "wss"):
+        if str(proxy.scheme) in {"https", "http", "ws", "wss"}:
+            self._proxy = proxy
+        else:
             raise ValueError("Proxy URL must have a valid scheme.")
-
-        self._proxy = proxy
 
     def create_session(self, **kwargs: typing.Any) -> aiohttp.ClientSession:
         """Create a client session."""
@@ -137,8 +140,7 @@ class BaseCookieManager(abc.ABC):
 
                 if not self.multi:
                     new_cookies = parse_cookie(response.cookies)
-                    new_keys = new_cookies.keys() - cookies.keys()
-                    if new_keys:
+                    if new_keys := new_cookies.keys() - cookies.keys():
                         cookies.update(new_cookies)
                         _LOGGER.debug("Updating cookies for %s: %s", get_cookie_identifier(cookies), new_keys)
 
@@ -237,11 +239,14 @@ class CookieManager(BaseCookieManager):
 
         Returns None if cookies are not set.
         """
-        for name, value in self.cookies.items():
-            if name in ("ltuid", "account_id"):
-                return int(value)
-
-        return None
+        return next(
+            (
+                int(value)
+                for name, value in self.cookies.items()
+                if name in ("ltuid", "account_id")
+            ),
+            None,
+        )
 
     async def request(
         self,
@@ -418,10 +423,7 @@ class InternationalCookieManager(BaseCookieManager):
         if "takumi" in url.host:
             return types.Region.CHINESE
 
-        if "sg" in url.host:
-            return types.Region.OVERSEAS
-
-        return types.Region.CHINESE
+        return types.Region.OVERSEAS if "sg" in url.host else types.Region.CHINESE
 
     async def request(
         self,
@@ -483,9 +485,11 @@ def requires_cookie_token(func: AsyncCallableT) -> AsyncCallableT:
             raise TypeError("Cannot use @requires_cookie_token on a plain function.")
         if self.cookie_manager.multi:
             raise RuntimeError(f"Cannot use {func.__name__} with multi-cookie managers - data is private.")
-        if isinstance(self.cookie_manager, CookieManager):
-            if "cookie_token" not in self.cookie_manager.cookies or "account_id" not in self.cookie_manager.cookies:
-                raise errors.InvalidCookies(msg="Missing cookie_token or account_id in cookies.")
+        if isinstance(self.cookie_manager, CookieManager) and (
+            "cookie_token" not in self.cookie_manager.cookies
+            or "account_id" not in self.cookie_manager.cookies
+        ):
+            raise errors.InvalidCookies(msg="Missing cookie_token or account_id in cookies.")
 
         return await func(self, *args, **kwargs)
 

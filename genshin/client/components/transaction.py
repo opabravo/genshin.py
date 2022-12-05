@@ -52,7 +52,7 @@ class TransactionClient(base.BaseClient):
     ) -> typing.Sequence[models.BaseTransaction]:
         """Get a single page of transactions."""
         kind = models.TransactionKind(kind)
-        endpoint = "get" + kind.value.capitalize() + "Log"
+        endpoint = f"get{kind.value.capitalize()}Log"
 
         mi18n_task = asyncio.create_task(self._fetch_mi18n("inquiry", lang=lang or self.lang))
 
@@ -87,20 +87,19 @@ class TransactionClient(base.BaseClient):
         if isinstance(kinds, str):
             kinds = [kinds]
 
-        iterators: typing.List[paginators.Paginator[models.BaseTransaction]] = []
-        for kind in kinds:
-            iterators.append(
-                paginators.CursorPaginator(
-                    functools.partial(
-                        self._get_transaction_page,
-                        kind=kind,
-                        lang=lang,
-                        authkey=authkey,
-                    ),
-                    limit=limit,
-                    end_id=end_id,
-                )
+        iterators: typing.List[paginators.Paginator[models.BaseTransaction]] = [
+            paginators.CursorPaginator(
+                functools.partial(
+                    self._get_transaction_page,
+                    kind=kind,
+                    lang=lang,
+                    authkey=authkey,
+                ),
+                limit=limit,
+                end_id=end_id,
             )
+            for kind in kinds
+        ]
 
         if len(iterators) == 1:
             return iterators[0]

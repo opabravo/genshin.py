@@ -127,7 +127,11 @@ async def update_characters_genshindata(langs: typing.Sequence[str] = ()) -> Non
 
     for char in characters:
         for lang, textmap in zip(langs, textmaps):
-            if char["skillDepotId"] == 101 or char["iconName"].endswith("_Kate") or str(char["id"])[:2] == "11":
+            if (
+                char["skillDepotId"] == 101
+                or char["iconName"].endswith("_Kate")
+                or str(char["id"]).startswith("11")
+            ):
                 continue  # test character
 
             if char["candSkillDepotIds"]:

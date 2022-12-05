@@ -144,10 +144,11 @@ class LineupArtifactStatFields(APIModel):
 
     @pydantic.validator("secondary_stats", "flower", "plume", "sands", "goblet", "circlet", pre=True)
     def __parse_secondary_stats(cls, value: typing.Any) -> typing.Dict[int, str]:
-        if not isinstance(value, typing.Sequence):
-            return value
-
-        return {stat["id"]: stat["name"] for stat in value}  # type: ignore
+        return (
+            {stat["id"]: stat["name"] for stat in value}
+            if isinstance(value, typing.Sequence)
+            else value
+        )
 
     @property
     def all_stats(self) -> typing.Mapping[int, str]:
@@ -245,10 +246,7 @@ class LineupCharacterPreview(PartialLineupCharacter):
 
     @pydantic.validator("role", pre=True)
     def __parse_role(cls, value: typing.Any) -> str:
-        if isinstance(value, str):
-            return value
-
-        return value["name"]
+        return value if isinstance(value, str) else value["name"]
 
 
 class LineupCharacter(LineupCharacterPreview):
@@ -289,7 +287,7 @@ class LineupPreview(APIModel, Unique):
         if isinstance(value[0], typing.Sequence):
             return value
 
-        return [[character for character in group["group"]] for group in value]
+        return [list(group["group"]) for group in value]
 
 
 class Lineup(LineupPreview):

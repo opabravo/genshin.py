@@ -49,10 +49,11 @@ class CalculatorClient(base.BaseClient):
             data = dict(data or {})
             data["lang"] = lang or self.lang
 
-        if not model_constants.CHARACTER_NAMES.get(lang or self.lang):
-            update_task = asyncio.create_task(utility.update_characters_enka())
-        else:
-            update_task = asyncio.create_task(asyncio.sleep(0))
+        update_task = (
+            asyncio.create_task(asyncio.sleep(0))
+            if model_constants.CHARACTER_NAMES.get(lang or self.lang)
+            else asyncio.create_task(utility.update_characters_enka())
+        )
 
         data = await self.request(url, method=method, params=params, data=data, **kwargs)
 

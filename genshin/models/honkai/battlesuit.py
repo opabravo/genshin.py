@@ -44,12 +44,12 @@ class Battlesuit(APIModel, Unique):
             return tall_icon
 
         suit_identifier = BATTLESUIT_IDENTIFIERS.get(values["id"])
-        return ICON_BASE + f"AvatarTachie/{suit_identifier or 'Unknown'}.png"
+        return f"{ICON_BASE}AvatarTachie/{suit_identifier or 'Unknown'}.png"
 
     @property
     def character(self) -> str:
         match = re.match(r".*/(\w+C\d+).png", self.tall_icon)
-        char_raw = match.group(1) if match else ""
+        char_raw = match[1] if match else ""
 
         if "Twin" in char_raw:
             # Rozaliya and Liliya share the same identifier

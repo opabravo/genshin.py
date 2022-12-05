@@ -48,10 +48,7 @@ class Expedition(APIModel):
 
     @pydantic.validator("character", pre=True)
     def __complete_character(cls, v: typing.Any) -> typing.Any:
-        if isinstance(v, str):
-            return dict(icon=v)  # type: ignore
-
-        return v
+        return dict(icon=v) if isinstance(v, str) else v
 
 
 class TransformerTimedelta(datetime.timedelta):
@@ -118,8 +115,10 @@ class Notes(APIModel):
         if self.remaining_transformer_recovery_time is None:
             return None
 
-        remaining = datetime.datetime.now().astimezone() + self.remaining_transformer_recovery_time
-        return remaining
+        return (
+            datetime.datetime.now().astimezone()
+            + self.remaining_transformer_recovery_time
+        )
 
     @pydantic.root_validator(pre=True)
     def __flatten_transformer(cls, values: typing.Dict[str, typing.Any]) -> typing.Dict[str, typing.Any]:

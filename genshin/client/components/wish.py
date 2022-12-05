@@ -76,20 +76,19 @@ class WishClient(base.BaseClient):
         if not isinstance(banner_types, typing.Sequence):
             banner_types = [banner_types]
 
-        iterators: typing.List[paginators.Paginator[models.Wish]] = []
-        for banner in banner_types:
-            iterators.append(
-                paginators.CursorPaginator(
-                    functools.partial(
-                        self._get_wish_page,
-                        banner_type=banner,
-                        lang=lang,
-                        authkey=authkey,
-                    ),
-                    limit=limit,
-                    end_id=end_id,
-                )
+        iterators: typing.List[paginators.Paginator[models.Wish]] = [
+            paginators.CursorPaginator(
+                functools.partial(
+                    self._get_wish_page,
+                    banner_type=banner,
+                    lang=lang,
+                    authkey=authkey,
+                ),
+                limit=limit,
+                end_id=end_id,
             )
+            for banner in banner_types
+        ]
 
         if len(iterators) == 1:
             return iterators[0]
